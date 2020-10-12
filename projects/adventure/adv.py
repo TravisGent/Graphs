@@ -33,179 +33,87 @@ traversal_path = [] # 14 moves 9 rooms for test_cross
 
 #-------------------------- MY CODE START ----------------------------------
 
-class Graph:
-    """Represent a graph as a dictionary of vertices mapping labels to edges."""
-    def __init__(self):
-        self.vertices = {}
+# def dft(self, starting_vertex):
+#     """
+#     Print each vertex in depth-first order
+#     beginning from starting_vertex.
+#     """
+#     q = Stack()
+#     visited = set()
+# 
+#     q.push(starting_vertex)
+#     
+#     while q.size() > 0:
+#         v = q.pop()
+#         if v not in visited:
+#             print(v)
+#             visited.add(v)
+#             for neighbor in self.get_neighbors(v):
+#                 q.push(neighbor)
 
-    def add_vertex(self, vertex_id):
-        """
-        Add a vertex to the graph.
-        """
-        self.vertices[vertex_id] = {}
+class Node_And_Direction:
+    def __init__(self, direction, room):
+        self.direction = direction
+        self.room = room
 
-    def add_edge(self, v1, v2):
-        """
-        Add a directed edge to the graph.
-        """
-        self.vertices[v1][v2] = '?'
+    def get_opposite(self):
+        if self.direction == 'n':
+            return 's'
+        if self.direction == 's':
+            return 'n'
+        if self.direction == 'e':
+            return 'w'
+        if self.direction == 'w':
+            return 'e'
 
+def build_path():
+    q = Stack()
+    visited = set()
 
-    def get_neighbors(self, vertex_id):
-        """
-        Get all neighbors (edges) of a vertex.
-        """
-        if vertex_id in self.vertices:
-            return self.vertices[vertex_id]
-        else:
-            raise IndexError("nonexistant vertex")
+    sub_path = []
 
-    def dft(self, starting_vertex):
-        """
-        Print each vertex in depth-first order
-        beginning from starting_vertex.
-        """
-        q = Stack()
-        visited = set()
+    for direction in world.starting_room.get_exits():
+        if direction == 'n' and world.starting_room.n_to not in visited:
+            q.push(Node_And_Direction('n', world.starting_room))
+            sub_path.append('n')
 
-        q.push(starting_vertex)
-        
-        while q.size() > 0:
-            v = q.pop()
-            if v not in visited:
-                print(v)
-                visited.add(v)
-                for neighbor in self.get_neighbors(v):
-                    q.push(neighbor)
+        if direction == 's' and world.starting_room.s_to not in visited:
+            q.push(Node_And_Direction('s', world.starting_room))
+            sub_path.append('s')
 
-newGraph = Graph()
+        if direction == 'w' and world.starting_room.w_to not in visited:
+            q.push(Node_And_Direction('w', world.starting_room))
+            sub_path.append('w')
 
-def build_graph(graph):
-    opposite_of_n = 's'
-    opposite_of_s = 'n'
-    opposite_of_w = 'e'
-    opposite_of_e = 'w'
+        if direction == 'e' and world.starting_room.e_to not in visited:
+            q.push(Node_And_Direction('e', world.starting_room))
+            sub_path.append('e')
 
-    graph.add_vertex(player.current_room.id)
-    for direction in player.current_room.get_exits():
-        graph.add_edge(player.current_room.id, direction)
-    x = 0
-    while x == 0:
-        reference = player.current_room.id
+    while q.size() > 0:
+        current_room = q.pop()
+        visited.add(current_room.room)
+        for direction in current_room.room.get_exits():
+            if direction == 'n' and current_room.room.n_to not in visited:
+                q.push(Node_And_Direction('n', current_room.room.n_to))
+                traversal_path.append('n')
 
-        if "n" in graph.vertices[reference] and graph.vertices[reference]['n'] is '?':
-            graph.vertices[reference]['n'] = 'OK'
-            traversal_path.append('n')
-            player.travel('n')
+            if direction == 's' and current_room.room.s_to not in visited:
+                q.push(Node_And_Direction('s', current_room.room.s_to))
+                traversal_path.append('s')
 
-            if not (player.current_room.id in graph.vertices):
-                graph.add_vertex(player.current_room.id)
-                for direction in player.current_room.get_exits():
-                    graph.add_edge(player.current_room.id, direction)
+            if direction == 'w' and current_room.room.w_to not in visited:
+                q.push(Node_And_Direction('w', current_room.room.w_to))
+                traversal_path.append('w')
 
-        elif "s" in graph.vertices[reference] and graph.vertices[reference]['s'] is '?':
-            graph.vertices[reference]['s'] = 'OK'
-            traversal_path.append('s')
-            player.travel('s')
+            if direction == 'e' and current_room.room.e_to not in visited:
+                q.push(Node_And_Direction('e', current_room.room.e_to))
+                traversal_path.append('e')
+            
+# if at dead end (current room has all paths from it lead to already visited paths) 
+# go and add oppisites of sub_path but backwards so that you get to start node
+# then add directions again.               
 
-            if not (player.current_room.id in graph.vertices):
-                graph.add_vertex(player.current_room.id)
-                for direction in player.current_room.get_exits():
-                    graph.add_edge(player.current_room.id, direction)
-
-        elif "w" in graph.vertices[reference] and graph.vertices[reference]['w'] is '?':
-            graph.vertices[reference]['w'] = 'OK'
-            traversal_path.append('w')
-            player.travel('w')
-
-            if not (player.current_room.id in graph.vertices):
-                graph.add_vertex(player.current_room.id)
-                for direction in player.current_room.get_exits():
-                    graph.add_edge(player.current_room.id, direction)
-
-        elif "e" in graph.vertices[reference] and graph.vertices[reference]['e'] is '?':
-            graph.vertices[reference]['e'] = 'OK'
-            traversal_path.append('e')
-            player.travel('e')
-
-            if not (player.current_room.id in graph.vertices):
-                graph.add_vertex(player.current_room.id)
-                for direction in player.current_room.get_exits():
-                    graph.add_edge(player.current_room.id, direction)
-        else:
-            counter = 0
-            new_traversal_path = traversal_path
-            traveled_array = len(new_traversal_path) - 1            
-            while counter < 10:
-                while traveled_array >= 0:
-                    if new_traversal_path[traveled_array] == "n":
-                        player.travel(opposite_of_n)
-                    elif new_traversal_path[traveled_array] == "s":
-                        player.travel(opposite_of_s)
-                    elif new_traversal_path[traveled_array] == "w":
-                        player.travel(opposite_of_w)
-                    elif new_traversal_path[traveled_array] == "e":
-                        player.travel(opposite_of_e)
-
-                    reference = player.current_room.id
-
-                    if "n" in graph.vertices.get(reference) and graph.vertices.get(reference)['n'] is '?':
-                        graph.vertices[reference]['n'] = 'OK'
-                        traversal_path.append('n')
-
-                        if not (player.current_room.id in graph.vertices):
-                            graph.add_vertex(player.current_room.id)
-                            for direction in player.current_room.get_exits():
-                                graph.add_edge(player.current_room.id, direction)
-
-                    elif "s" in graph.vertices.get(reference) and graph.vertices.get(reference)['s'] is '?':
-                        graph.vertices[reference]['s'] = 'OK'
-                        traversal_path.append('s')
-
-                        if not (player.current_room.id in graph.vertices):
-                            graph.add_vertex(player.current_room.id)
-                            for direction in player.current_room.get_exits():
-                                graph.add_edge(player.current_room.id, direction)
-
-                    elif "w" in graph.vertices.get(reference) and graph.vertices.get(reference)['w'] is '?':
-                        graph.vertices[reference]['w'] = 'OK'
-                        traversal_path.append('w')
-
-                        if not (player.current_room.id in graph.vertices):
-                            graph.add_vertex(player.current_room.id)
-                            for direction in player.current_room.get_exits():
-                                graph.add_edge(player.current_room.id, direction)
-
-                    elif "e" in graph.vertices.get(reference) and graph.vertices.get(reference)['e'] is '?':
-                        graph.vertices[reference]['e'] = 'OK'
-                        traversal_path.append('e')
-
-                        if not (player.current_room.id in graph.vertices):
-                            graph.add_vertex(player.current_room.id)
-                            for direction in player.current_room.get_exits():
-                                graph.add_edge(player.current_room.id, direction)
-
-                    else:
-                        counter += 1
-                        traveled_array -= 1
-
-
-#    q = Stack()
-#    visited = set()
-#
-#    q.push(player.current_room.id)
-#
-#    while q.size() > 0:
-#        v = q.pop()
-#        if v not in visited:
-#            visited.add(v)
-#            newGraph.add_vertex(v)
-#            for direction in player.current_room.get_exits():
-#                newGraph.add_edge(v, direction)
-#                player.travel(direction)
-#                q.push(player.current_room.id)
-                
-build_graph(newGraph)
+build_path()
 
 print("!!!!!!!!!!!!!!!!!!!!!!!")
 print(traversal_path)

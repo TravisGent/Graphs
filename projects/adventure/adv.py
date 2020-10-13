@@ -99,22 +99,21 @@ def build_path():
         stack.push(Node_And_Direction(direction, world.starting_room))
 
     while stack.size() > 0:
-        if current_room:
+        run_bfs = True
+        run_bfs_two = True
+
+        if current_room: 
             previous_room = current_room
 
         current_room = stack.pop()
         if current_room.room not in visited:
             visited.add(current_room.room)
 
-        if current_room.room.id == 234:
-            i = 0
-
         if previous_room:
             for direction in previous_room.room.get_exits():
                 if previous_room.room.get_room_in_direction(direction) == current_room.room:
                     traversal_path.append(direction)
 
-        run_bfs = True
 
         for direction in current_room.room.get_exits():
             if current_room.room.get_room_in_direction(direction) not in visited:
@@ -126,7 +125,19 @@ def build_path():
             i = 1
             while i < len(search_for_path):
                 traversal_path.append(search_for_path[i].direction)
+                current_room = search_for_path[i]
                 i += 1
+            for direction in current_room.room.get_exits():
+                if current_room.room.get_room_in_direction(direction) not in visited:
+                    run_bfs_two = False
+        if run_bfs_two and stack.size() > 0:
+            search_for_path = bfs(current_room, stack)
+            i = 1
+            while i < len(search_for_path):
+                traversal_path.append(search_for_path[i].direction)
+                current_room = search_for_path[i]
+                i += 1
+            
 
 
 # do DFT for getting into the stack, then when hit dead end i.e. no more to go that are not in visited, then do a BFS with the starting destination being

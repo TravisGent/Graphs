@@ -26,3 +26,6 @@ class Stack():
     def size(self):
         return len(self.stack)
 
+    def vertex_position(self, index):
+        return self.stack[index]
+

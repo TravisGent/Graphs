@@ -13,10 +13,10 @@ world = World()
 
 # You may uncomment the smaller graphs for development and testing purposes.
 # map_file = "maps/test_line.txt"
-map_file = "maps/test_cross.txt"
+# map_file = "maps/test_cross.txt"
 # map_file = "maps/test_loop.txt"
 # map_file = "maps/test_loop_fork.txt"
-# map_file = "maps/main_maze.txt"
+map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
 room_graph=literal_eval(open(map_file, "r").read())
@@ -56,62 +56,83 @@ class Node_And_Direction:
         self.direction = direction
         self.room = room
 
-    def get_opposite(self):
-        if self.direction == 'n':
-            return 's'
-        if self.direction == 's':
-            return 'n'
-        if self.direction == 'e':
-            return 'w'
-        if self.direction == 'w':
-            return 'e'
+def get_opposite(direction):
+    if direction == 'n':
+        return 's'
+    if direction == 's':
+        return 'n'
+    if direction == 'e':
+        return 'w'
+    if direction == 'w':
+        return 'e'
+
+def bfs(starting_vertex, stack):
+    queue = Queue()
+    queue_visited = set()
+
+    queue.enqueue([starting_vertex])
+    destination_vertex = stack.vertex_position(-1)
+    
+    while queue.size() > 0:
+        path = queue.dequeue()
+        v = path[-1]
+
+        if v not in queue_visited:
+            if v.room.id == destination_vertex.room.id:
+                return path
+            queue_visited.add(v)
+
+            for direction in v.room.get_exits():
+                if v.room.get_room_in_direction(direction) not in queue_visited:
+                    new_path = path + [Node_And_Direction(direction, v.room.get_room_in_direction(direction))]
+                    queue.enqueue(new_path)
+
+    return None
 
 def build_path():
-    q = Stack()
+    stack = Stack()
     visited = set()
-
-    sub_path = []
+    current_room = None
+    previous_room = None
 
     for direction in world.starting_room.get_exits():
-        if direction == 'n' and world.starting_room.n_to not in visited:
-            q.push(Node_And_Direction('n', world.starting_room))
-            sub_path.append('n')
+        stack.push(Node_And_Direction(direction, world.starting_room))
 
-        if direction == 's' and world.starting_room.s_to not in visited:
-            q.push(Node_And_Direction('s', world.starting_room))
-            sub_path.append('s')
+    while stack.size() > 0:
+        if current_room:
+            previous_room = current_room
 
-        if direction == 'w' and world.starting_room.w_to not in visited:
-            q.push(Node_And_Direction('w', world.starting_room))
-            sub_path.append('w')
+        current_room = stack.pop()
+        if current_room.room not in visited:
+            visited.add(current_room.room)
 
-        if direction == 'e' and world.starting_room.e_to not in visited:
-            q.push(Node_And_Direction('e', world.starting_room))
-            sub_path.append('e')
+        if current_room.room.id == 234:
+            i = 0
 
-    while q.size() > 0:
-        current_room = q.pop()
-        visited.add(current_room.room)
+        if previous_room:
+            for direction in previous_room.room.get_exits():
+                if previous_room.room.get_room_in_direction(direction) == current_room.room:
+                    traversal_path.append(direction)
+
+        run_bfs = True
+
         for direction in current_room.room.get_exits():
-            if direction == 'n' and current_room.room.n_to not in visited:
-                q.push(Node_And_Direction('n', current_room.room.n_to))
-                traversal_path.append('n')
+            if current_room.room.get_room_in_direction(direction) not in visited:
+                stack.push(Node_And_Direction(direction, current_room.room.get_room_in_direction(direction)))
+                run_bfs = False
 
-            if direction == 's' and current_room.room.s_to not in visited:
-                q.push(Node_And_Direction('s', current_room.room.s_to))
-                traversal_path.append('s')
+        if run_bfs and stack.size() > 0 and stack.vertex_position(-1).room not in visited:
+            search_for_path = bfs(current_room, stack)
+            i = 1
+            while i < len(search_for_path):
+                traversal_path.append(search_for_path[i].direction)
+                i += 1
 
-            if direction == 'w' and current_room.room.w_to not in visited:
-                q.push(Node_And_Direction('w', current_room.room.w_to))
-                traversal_path.append('w')
 
-            if direction == 'e' and current_room.room.e_to not in visited:
-                q.push(Node_And_Direction('e', current_room.room.e_to))
-                traversal_path.append('e')
-            
-# if at dead end (current room has all paths from it lead to already visited paths) 
-# go and add oppisites of sub_path but backwards so that you get to start node
-# then add directions again.               
+# do DFT for getting into the stack, then when hit dead end i.e. no more to go that are not in visited, then do a BFS with the starting destination being
+# where the current node is, and the target destination being the next node in the stack
+# 
+# also make sure that I am appending the right directions to the array, not the directions that are only referenced, but not traveled.            
 
 build_path()
 
